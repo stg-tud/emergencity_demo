@@ -16,11 +16,16 @@
 
 `docker-compose up`
 
-`mosquitto_pub -h localhost -t city/alert_state -m "emergency"`
-`mosquitto_pub -h localhost -t city/alert_state -m "love, peace and harmony"`
+```
+mosquitto_pub -h localhost -t city/alert_state -m "emergency"
+```
 
-Port for mqtt: 1883
-Port for websockets: 9001
+```
+mosquitto_pub -h localhost -t city/alert_state -m "love, peace and harmony"
+```
+
+Port for mqtt: *1883*
+Port for websockets: *9001*
 
 Show dashboard UI:
 http://localhost:1880/ui
