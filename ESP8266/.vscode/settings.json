@@ -1,0 +1,8 @@
+{
+    "terminal.integrated.env.osx": {
+        "PATH": "~/.platformio/penv/bin:/Users/artur/.platformio/penv/bin:/Users/artur/.platformio/penv:/Library/TeX/texbin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin",
+        "PLATFORMIO_CALLER": "vscode"
+    },
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "autopep8"
+}
