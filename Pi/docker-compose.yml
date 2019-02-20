@@ -8,9 +8,8 @@ services:
     volumes:
       - ./mosquitto:/mosquitto
   nodered:
-    image: "nodered/node-red-docker"
+    image: "nodered/node-red-docker:rpi"
     ports:
       - "1880:1880"
     volumes:
-      - ./nodered/data:/data
-
+      - ./nodered:/data

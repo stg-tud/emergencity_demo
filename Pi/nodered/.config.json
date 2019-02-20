@@ -511,23 +511,6 @@
     }
    }
   },
-  "node-red-contrib-ui_list": {
-   "name": "node-red-contrib-ui_list",
-   "version": "0.1.3",
-   "local": true,
-   "nodes": {
-    "ui_list": {
-     "name": "ui_list",
-     "types": [
-      "ui_list"
-     ],
-     "enabled": true,
-     "local": true,
-     "module": "node-red-contrib-ui_list",
-     "file": "/data/node_modules/node-red-contrib-ui_list/ui_list.js"
-    }
-   }
-  },
   "node-red-dashboard": {
    "name": "node-red-dashboard",
    "version": "2.13.2",
