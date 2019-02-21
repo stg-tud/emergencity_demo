@@ -18,6 +18,7 @@ PARTICLES_TOPIC = "city/particles"
 BROADBAND_TOPIC = "city/broadband"
 IR_TOPIC = "city/ir"
 LIGHT_TOPIC = "city/lux"
+MOTION_TOPIC = "city/motion"
 
 # A timer on how often a sensor should be read.
 # Maybe more fine grained in future.
@@ -38,10 +39,12 @@ def setup_mqtt():
     MQTT_CLIENT.loop_start()
 
 
-# TODO
+# Send if motion is detected.
 def on_motion(GPIO_PIN):
-    pass
+    global MQTT_CLIENT
+    print("## Publishing motion detected to topic {}".format(MOTION_TOPIC))
 
+    MQTT_CLIENT.publish(MOTION_TOPIC, "motion")
 
 # A generic function for reading a sensor (in func) and publishing the
 # values to a topic in MQTT.
