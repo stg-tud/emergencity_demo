@@ -15,6 +15,8 @@ MQTT_CLIENT = None
 TEMPERATURE_TOPIC = "city/temp"
 HUMIDITY_TOPIC = "city/humi"
 PARTICLES_TOPIC = "city/particles"
+BROADBAND_TOPIC = "city/broadband"
+IR_TOPIC = "city/ir"
 LIGHT_TOPIC = "city/lux"
 
 # A timer on how often a sensor should be read.
@@ -66,6 +68,8 @@ if __name__ == '__main__':
     process_sensor_mqtt(sensors.humidity, HUMIDITY_TOPIC)
     process_sensor_mqtt(sensors.temperature, TEMPERATURE_TOPIC)
     process_sensor_mqtt(sensors.particles, PARTICLES_TOPIC)
+    process_sensor_mqtt(sensors.broadband, BROADBAND_TOPIC)
+    process_sensor_mqtt(sensors.ir, IR_TOPIC)
     process_sensor_mqtt(sensors.lux, LIGHT_TOPIC)
 
     # Since everything is threaded, we need to pause the main thread.

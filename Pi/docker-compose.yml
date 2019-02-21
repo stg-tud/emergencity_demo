@@ -13,3 +13,6 @@ services:
       - "1880:1880"
     volumes:
       - ./nodered:/data
+    devices:
+      - "/dev/ttyUSB0"
+    user: "root"

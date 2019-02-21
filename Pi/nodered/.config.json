@@ -727,6 +727,26 @@
      "file": "/data/node_modules/node-red-dashboard/nodes/ui_spacer.js"
     }
    }
+  },
+  "node-red-node-serialport": {
+   "name": "node-red-node-serialport",
+   "version": "0.7.0",
+   "local": true,
+   "nodes": {
+    "serialport": {
+     "name": "serialport",
+     "types": [
+      "serial in",
+      "serial out",
+      "serial request",
+      "serial-port"
+     ],
+     "enabled": true,
+     "local": true,
+     "module": "node-red-node-serialport",
+     "file": "/data/node_modules/node-red-node-serialport/25-serial.js"
+    }
+   }
   }
  },
  "_credentialSecret": "0e70591a99086d3157864f4b3155182cc0fb0be4c0d005256012e24cab7321ee",
