@@ -2,6 +2,7 @@
 #define HELPERS_H
 
 #define CRISIS_CMD "CRISIS"
+#define RESTART_CMD "RESTART"
 
 // This is the function for writing register. See "write_registers.S" for info.
 extern "C" void write_register_asm(uint32_t a, uint32_t b);

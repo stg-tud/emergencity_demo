@@ -52,6 +52,8 @@ void morph_crisis() {
 void print_log(const uint8_t mac[6], const uint8_t *buf, size_t count, void *cbarg) {
     if (strcasecmp(CRISIS_CMD, (const char *)buf) == 0) {
         morph_crisis();
+    } else if ((strcasecmp(RESTART_CMD, (const char *)buf) == 0)){
+        ESP.restart();
     } else {
         Serial.printf("%s\n", (const char *)buf);
     }
@@ -106,6 +108,10 @@ void loop() {
     // If we have received the "crisis" command, switch to crisis mode.
     if (cmd_parser.equalCommand(CRISIS_CMD)) {
         morph_crisis();
+    }
+
+    if (cmd_parser.equalCommand(RESTART_CMD)) {
+        ESP.restart();
     }
 
     // Clear the buffer to get rid of remaining junk.
