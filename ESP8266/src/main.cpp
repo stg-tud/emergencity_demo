@@ -13,6 +13,20 @@
 CmdParser cmd_parser;
 CmdBuffer<WIFIESPNOW_MAXMSGLEN> cmd_buffer;
 
+int peer_addr() {
+    uint8_t my_mac[6];
+    wifi_get_macaddr(SOFTAP_IF, my_mac);
+
+    int i;
+    for (i = 0; i <= 1; i++) {
+        if (memcmp(nodes[i], my_mac, 6) != 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 // Switch to crisis mode by downclocking the ESP..
 void morph_crisis() {
     // Notify about switch and wait 100 ms for flush.
@@ -62,15 +76,12 @@ void setup() {
         ESP.restart();
     }
 
-    // This is the callback for printing received data (Receiver only).
+    // This is the callback for printing received data.
     WifiEspNow.onReceive(print_log, nullptr);
 
     // To be able to communicate, the two ESPs have add each other to the peers list.
     // Therefore, we first get the mac address, and check which of the two ESPs we have.
-    uint8_t my_mac[6];
-    wifi_get_macaddr(SOFTAP_IF, my_mac);
-
-    ok = WifiEspNow.addPeer((memcmp(sender_id, my_mac, 6) == 0) ? receiver_id : sender_id);
+    ok = WifiEspNow.addPeer(nodes[peer_addr()]);
     if (!ok) {
         Serial.print("WifiEspNow.addPeer() failed. Rebooting.\n");
         ESP.restart();
@@ -90,7 +101,7 @@ void loop() {
     }
 
     // Send the data received over Serial via Wi-Fi.
-    WifiEspNow.send(receiver_id, cmd_buffer.getBuffer(), WIFIESPNOW_MAXMSGLEN);
+    WifiEspNow.send(nodes[peer_addr()], cmd_buffer.getBuffer(), WIFIESPNOW_MAXMSGLEN);
 
     // If we have received the "crisis" command, switch to crisis mode.
     if (cmd_parser.equalCommand(CRISIS_CMD)) {
