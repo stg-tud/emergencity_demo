@@ -13,7 +13,7 @@ import sensors
 
 MQTT_CLIENT = None
 
-config = configparser.ConfigParser()
+CONFIG = configparser.ConfigParser()
 
 TEMPERATURE_TOPIC = "city/temp"
 HUMIDITY_TOPIC = "city/humi"
@@ -51,20 +51,39 @@ def on_motion(GPIO_PIN):
 # values to a topic in MQTT.
 def process_sensor_mqtt(func, topic):
     global MQTT_CLIENT
-    _thread = threading.Timer(int(config['DEFAULT'][func.__name__]),
-                              process_sensor_mqtt, [func, topic])
+    global CONFIG
+
+    _thread = threading.Timer(
+        int(CONFIG['DEFAULT'][func.__name__]), process_sensor_mqtt,
+        [func, topic])
     _thread.daemon = True
     _thread.start()
 
     sensor_value = func()
-    print("## Publishing {} to topic {}".format(sensor_value, topic))
+    print("## Publishing {} to topic {} ({}) ".format(
+        sensor_value, topic, CONFIG['DEFAULT'][func.__name__]))
 
     MQTT_CLIENT.publish(topic, sensor_value)
 
 
+def update_config():
+    global CONFIG
+
+    _thread = threading.Timer(5, update_config)
+    _thread.daemon = True
+    _thread.start()
+
+    print("### Updating config.")
+
+    tmp_cfg = configparser.ConfigParser()
+    tmp_cfg.read('config/config.ini')
+
+    CONFIG = tmp_cfg
+
+
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
-    config.read('config/config.ini')
+    CONFIG.read('config/config.ini')
 
     # Init sensors and MQTT
     sensors.init_sensors(on_motion)
@@ -82,6 +101,8 @@ if __name__ == '__main__':
     process_sensor_mqtt(sensors.ir, IR_TOPIC)
     time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.lux, LIGHT_TOPIC)
+
+    update_config()
 
     # Since everything is threaded, we need to pause the main thread.
     signal.pause()
