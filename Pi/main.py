@@ -1,3 +1,4 @@
+import configparser
 import time
 import threading
 import signal
@@ -12,6 +13,8 @@ import sensors
 
 MQTT_CLIENT = None
 
+config = configparser.ConfigParser()
+
 TEMPERATURE_TOPIC = "city/temp"
 HUMIDITY_TOPIC = "city/humi"
 PARTICLES_TOPIC = "city/particles"
@@ -20,10 +23,7 @@ IR_TOPIC = "city/ir"
 LIGHT_TOPIC = "city/lux"
 MOTION_TOPIC = "city/motion"
 
-# A timer on how often a sensor should be read.
-# Maybe more fine grained in future.
-TIMER = 5
-
+THREAD_MEANTIME = 1
 
 # Gracefully close the GPIO pins on ctrl-c
 def signal_handler(sig, frame):
@@ -46,11 +46,13 @@ def on_motion(GPIO_PIN):
 
     MQTT_CLIENT.publish(MOTION_TOPIC, "motion")
 
+
 # A generic function for reading a sensor (in func) and publishing the
 # values to a topic in MQTT.
 def process_sensor_mqtt(func, topic):
     global MQTT_CLIENT
-    _thread = threading.Timer(TIMER, process_sensor_mqtt, [func, topic])
+    _thread = threading.Timer(int(config['DEFAULT'][func.__name__]),
+                              process_sensor_mqtt, [func, topic])
     _thread.daemon = True
     _thread.start()
 
@@ -62,6 +64,7 @@ def process_sensor_mqtt(func, topic):
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
+    config.read('config/config.ini')
 
     # Init sensors and MQTT
     sensors.init_sensors(on_motion)
@@ -69,10 +72,15 @@ if __name__ == '__main__':
 
     # Publish these sensors to the local MQTT.
     process_sensor_mqtt(sensors.humidity, HUMIDITY_TOPIC)
+    time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.temperature, TEMPERATURE_TOPIC)
+    time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.particles, PARTICLES_TOPIC)
+    time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.broadband, BROADBAND_TOPIC)
+    time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.ir, IR_TOPIC)
+    time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.lux, LIGHT_TOPIC)
 
     # Since everything is threaded, we need to pause the main thread.
