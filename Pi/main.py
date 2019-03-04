@@ -25,6 +25,9 @@ MOTION_TOPIC = "city/motion"
 
 THREAD_MEANTIME = 1
 
+LED_RING_PIN = 27
+
+
 # Gracefully close the GPIO pins on ctrl-c
 def signal_handler(sig, frame):
     GPIO.cleanup()
@@ -82,9 +85,29 @@ def update_config():
     CONFIG = tmp_cfg
 
 
+def switch_leds():
+    global CONFIG
+
+    _thread = threading.Timer(1, switch_leds)
+    _thread.daemon = True
+    _thread.start()
+
+    if CONFIG['DEFAULT']['led_state'] == 'steady':
+        if GPIO.input(LED_RING_PIN) == 0:
+            return
+        else:
+            GPIO.output(LED_RING_PIN, not GPIO.input(LED_RING_PIN))
+
+    GPIO.output(LED_RING_PIN, not GPIO.input(LED_RING_PIN))
+
+
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
     CONFIG.read('config/config.ini')
+
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(LED_RING_PIN, GPIO.OUT)
+    GPIO.output(LED_RING_PIN, GPIO.LOW)
 
     # Init sensors and MQTT
     sensors.init_sensors(on_motion)
@@ -102,8 +125,11 @@ if __name__ == '__main__':
     process_sensor_mqtt(sensors.ir, IR_TOPIC)
     time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.lux, LIGHT_TOPIC)
+    time.sleep(THREAD_MEANTIME)
 
     update_config()
+
+    switch_leds()
 
     # Since everything is threaded, we need to pause the main thread.
     signal.pause()
