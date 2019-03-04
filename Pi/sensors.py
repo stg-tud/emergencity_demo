@@ -11,8 +11,6 @@ import adafruit_tsl2561
 from max30105 import MAX30105
 
 MOTION_SENSOR_PIN = 17
-MOTION_SENSOR_READ = 0
-MOTION_SENSOR_STATE = 0
 
 TEMP_HUMI_SENSOR = Adafruit_DHT.AM2302
 TEMP_HUMI_PIN = 4
@@ -21,8 +19,10 @@ PARTICLE_SENSOR = None
 
 LIGHT_SENSOR = None
 
+
 def test_motion(GPIO_PIN):
     print("MOTION!")
+
 
 def init_sensors(motion_function):
     global PARTICLE_SENSOR
@@ -43,9 +43,9 @@ def init_sensors(motion_function):
         time.sleep(0.1)
 
     # Add a callback function to be triggered everytime the
-    # sensor detects motion
+    # sensor detects motion and falls back again
     GPIO.add_event_detect(
-        MOTION_SENSOR_PIN, GPIO.RISING, callback=motion_function)
+        MOTION_SENSOR_PIN, GPIO.BOTH, callback=motion_function)
 
     ### Particle Sensor ###
     print("Initializing PARTICLE sensor.")

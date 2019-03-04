@@ -42,9 +42,10 @@ def setup_mqtt():
 # Send if motion is detected.
 def on_motion(GPIO_PIN):
     global MQTT_CLIENT
-    print("## Publishing motion detected to topic {}".format(MOTION_TOPIC))
 
-    MQTT_CLIENT.publish(MOTION_TOPIC, "motion")
+    pin_state = GPIO.input(GPIO_PIN)
+    print("## Publishing motion {} to topic {}".format(pin_state, MOTION_TOPIC))
+    MQTT_CLIENT.publish(MOTION_TOPIC, pin_state)
 
 
 # A generic function for reading a sensor (in func) and publishing the
