@@ -29,9 +29,9 @@ int peer_addr() {
 
 // Switch to crisis mode by downclocking the ESP..
 void morph_crisis() {
-    // Notify about switch and wait 100 ms for flush.
+    // Notify about switch and wait for flush.
     Serial.print("Received CRISIS command. Morphing to crisis mode.\n");
-    delay(100);
+    Serial.flush();
 
     // This is the actual downclocking.
     // We have to wait 100 ms until the ESP is back functional
