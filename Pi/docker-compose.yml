@@ -13,6 +13,7 @@ services:
       - "1880:1880"
     volumes:
       - ./nodered:/data
+      - ./config:/pi_cfg
     devices:
       - "/dev/ttyUSB0"
     user: "root"
