@@ -3,6 +3,7 @@ import time
 import threading
 import signal
 import sys
+import random
 
 import RPi.GPIO as GPIO
 
@@ -17,7 +18,7 @@ CONFIG = configparser.ConfigParser()
 
 TEMPERATURE_TOPIC = "city/temp"
 HUMIDITY_TOPIC = "city/humi"
-PARTICLES_TOPIC = "city/particles"
+CO2_TOPIC = "city/co2"
 BROADBAND_TOPIC = "city/broadband"
 IR_TOPIC = "city/ir"
 LIGHT_TOPIC = "city/lux"
@@ -101,7 +102,23 @@ def switch_leds():
     GPIO.output(LED_RING_PIN, not GPIO.input(LED_RING_PIN))
 
 
+def testmode():
+    global MQTT_CLIENT
+
+    while True:
+        MQTT_CLIENT.publish(
+            random.choice(["city/temp", "city/humi", "city/co2", "city/broadband", "city/ir", "city/lux", "city/motion"]),
+            random.randint(0, 1000)
+        )
+        time.sleep(5)
+
+
 if __name__ == '__main__':
+    setup_mqtt()
+
+    if sys.argv[1] == 'test':
+        testmode()
+
     signal.signal(signal.SIGINT, signal_handler)
     CONFIG.read('config/config.ini')
 
@@ -111,14 +128,13 @@ if __name__ == '__main__':
 
     # Init sensors and MQTT
     sensors.init_sensors(on_motion)
-    setup_mqtt()
 
     # Publish these sensors to the local MQTT.
     process_sensor_mqtt(sensors.humidity, HUMIDITY_TOPIC)
     time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.temperature, TEMPERATURE_TOPIC)
     time.sleep(THREAD_MEANTIME)
-    process_sensor_mqtt(sensors.particles, PARTICLES_TOPIC)
+    process_sensor_mqtt(sensors.co2, CO2_TOPIC)
     time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.broadband, BROADBAND_TOPIC)
     time.sleep(THREAD_MEANTIME)
