@@ -7,17 +7,16 @@ import busio
 
 import Adafruit_DHT
 import adafruit_tsl2561
-
-from max30105 import MAX30105
+import adafruit_ccs811
 
 MOTION_SENSOR_PIN = 17
 
 TEMP_HUMI_SENSOR = Adafruit_DHT.AM2302
 TEMP_HUMI_PIN = 4
 
-PARTICLE_SENSOR = None
-
 LIGHT_SENSOR = None
+
+CO2_SENSOR = None
 
 
 def test_motion(GPIO_PIN):
@@ -25,8 +24,8 @@ def test_motion(GPIO_PIN):
 
 
 def init_sensors(motion_function):
-    global PARTICLE_SENSOR
     global LIGHT_SENSOR
+    global CO2_SENSOR
 
     print("Setting GPIO mode.")
     # Use GPIO numbers instead of pin numbers
@@ -47,22 +46,15 @@ def init_sensors(motion_function):
     GPIO.add_event_detect(
         MOTION_SENSOR_PIN, GPIO.BOTH, callback=motion_function)
 
-    ### Particle Sensor ###
-    print("Initializing PARTICLE sensor.")
-    PARTICLE_SENSOR = MAX30105()
-    PARTICLE_SENSOR.setup(leds_enable=3)
+    # i2c bus
+    i2c = busio.I2C(board.SCL, board.SDA)
 
-    PARTICLE_SENSOR.set_led_pulse_amplitude(1, 0.0)
-    PARTICLE_SENSOR.set_led_pulse_amplitude(2, 0.0)
-    PARTICLE_SENSOR.set_led_pulse_amplitude(3, 12.5)
-
-    PARTICLE_SENSOR.set_slot_mode(1, 'red')
-    PARTICLE_SENSOR.set_slot_mode(2, 'ir')
-    PARTICLE_SENSOR.set_slot_mode(3, 'green')
-    PARTICLE_SENSOR.set_slot_mode(4, 'off')
+    ### CO2 Sensor ###
+    CO2_SENSOR = adafruit_ccs811.CCS811(i2c)
+    while not CO2_SENSOR.data_ready:
+        pass
 
     ### Light Sensor ###
-    i2c = busio.I2C(board.SCL, board.SDA)
     LIGHT_SENSOR = adafruit_tsl2561.TSL2561(i2c)
     LIGHT_SENSOR.enabled = True
 
@@ -90,15 +82,9 @@ def lux():
     return LIGHT_SENSOR.lux
 
 
-def particles():
-    global PARTICLE_SENSOR
-    samples = PARTICLE_SENSOR.get_samples()
-
-    # The sensor sometimes returns None when coming to close.
-    if samples:
-        return 2000 * ((samples[2] & 0xff) / 255)
-    else:
-        return 2000
+def co2():
+    global CO2_SENSOR
+    return CO2_SENSOR.eco2
 
 
 if __name__ == '__main__':
@@ -107,7 +93,7 @@ if __name__ == '__main__':
     while True:
         print("Temp: " + str(temperature()))
         print("Humi: " + str(humidity()))
-        print("Particles: " + str(particles()))
+        print("CO2: " + str(co2()))
         print("Broadband Light: " + str(broadband()))
         print("Infrared: " + str(ir()))
         print("Lux: " + str(lux()))
