@@ -23,6 +23,7 @@ BROADBAND_TOPIC = "city/broadband"
 IR_TOPIC = "city/ir"
 LIGHT_TOPIC = "city/lux"
 MOTION_TOPIC = "city/motion"
+CAMERA_TOPIC = "city/vid"
 
 THREAD_MEANTIME = 1
 
@@ -102,6 +103,15 @@ def switch_leds():
     GPIO.output(LED_RING_PIN, not GPIO.input(LED_RING_PIN))
 
 
+def cam_detect_crisis():
+    _thread = threading.Timer(5, cam_detect_crisis)
+    _thread.daemon = True
+    _thread.start()
+
+    if camera():
+        MQTT_CLIENT.publish(CAMERA_TOPIC, "crisis")
+
+
 def testmode():
     global MQTT_CLIENT
 
@@ -116,7 +126,7 @@ def testmode():
 if __name__ == '__main__':
     setup_mqtt()
 
-    if sys.argv[1] == 'test':
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
         testmode()
 
     signal.signal(signal.SIGINT, signal_handler)
