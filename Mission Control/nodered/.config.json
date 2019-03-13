@@ -747,6 +747,23 @@
      "file": "/data/node_modules/node-red-node-serialport/25-serial.js"
     }
    }
+  },
+  "node-red-contrib-mjpgcamera": {
+   "name": "node-red-contrib-mjpgcamera",
+   "version": "1.0.4",
+   "local": true,
+   "nodes": {
+    "mjpgConsumer": {
+     "name": "mjpgConsumer",
+     "types": [
+      "mjpg-consumer"
+     ],
+     "enabled": true,
+     "local": true,
+     "module": "node-red-contrib-mjpgcamera",
+     "file": "/data/node_modules/node-red-contrib-mjpgcamera/mjpgConsumer/mjpgConsumer.js"
+    }
+   }
   }
  },
  "_credentialSecret": "0e70591a99086d3157864f4b3155182cc0fb0be4c0d005256012e24cab7321ee",
