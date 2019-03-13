@@ -4,7 +4,9 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "cn-dashboard-nodes": "0.0.2",
     "node-red-contrib-ui_list": "~0.1.3",
-    "node-red-dashboard": "~2.13.2"
+    "node-red-dashboard": "~2.14.0",
+    "node-red-node-serialport": "~0.7.0"
   }
 }
