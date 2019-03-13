@@ -10,6 +10,9 @@
 docker-compose up [-d]
 ```
 
+**DEV MODE**
+For development mode edit `docker-compose.yml` and comment out the USB device entry. Also use the `dummyEvents.py` event generator.
+
 All sensor values are published using the python skripts (see below).
 Only if the emergency state needs to be changed, use the following commands:
 
@@ -30,3 +33,6 @@ http://[PI_IP]:1880
 
 ## Running the sensors
 Start the `main.py` skript and everything should be up and runnning.
+
+**DEVMODE**
+If not on the real system use `dummyEvents.py` to generate randomized dummy events.
