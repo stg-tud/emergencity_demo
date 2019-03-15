@@ -2,10 +2,6 @@
 import time
 import sys
 import math
-import urllib.request
-
-import cv2
-import numpy as np
 
 import RPi.GPIO as GPIO
 import board
@@ -23,69 +19,6 @@ TEMP_HUMI_PIN = 4
 LIGHT_SENSOR = None
 
 CO2_SENSOR = None
-
-CAMERA_URL = urllib.request.urlopen(
-    'http://192.168.2.5/cgi-bin/mjpeg?resolution=1920x1080&quality=1&page=1551695809854&Language=9'
-)
-
-
-def camera():
-    global CAMERA_URL
-
-    byte_array = b''
-    while True:
-        byte_array += CAMERA_URL.read(1024)
-        jpeg_sig_start = byte_array.find(b'\xff\xd8')
-        jpeg_sig_end = byte_array.find(b'\xff\xd9')
-
-        if jpeg_sig_start != -1 and jpeg_sig_end != -1:
-            jpg = byte_array[jpeg_sig_start:jpeg_sig_end + 2]
-            byte_array = byte_array[jpeg_sig_end + 2:]
-
-            img = cv2.imdecode(
-                np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
-
-            img = cv2.medianBlur(img, 3)
-
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            lower_red = cv2.inRange(hsv, np.array([5, 100, 100]),
-                                    np.array([30, 255, 255]))
-            upper_red = cv2.inRange(hsv, np.array([20, 100, 100]),
-                                    np.array([60, 255, 255]))
-
-            masked = cv2.addWeighted(lower_red, 1.0, upper_red, 1.0, 0.0)
-
-            blurred = cv2.GaussianBlur(masked, (9, 9), 2)
-
-            image_cols, image_rows = blurred.shape
-
-            circles = cv2.HoughCircles(
-                blurred,
-                cv2.HOUGH_GRADIENT,
-                1,
-                image_rows / 8,
-                param1=100,
-                param2=30,
-                minRadius=100,
-                maxRadius=300)
-
-            if circles is None:
-                print("No crisis detected.")
-                return False
-
-            print("Crisis detected!")
-            return True
-
-            # for circle in circles[0, :]:
-            #     center = (circle[0], circle[1])
-            #     radius = circle[2]
-            #     print(radius)
-            #     cv2.circle(img, center, radius, (0, 255, 0), 5)
-
-            # cv2.imwrite('example.jpg', img)
-            # cv2.imwrite('masked.jpg', masked)
-            # cv2.imwrite('blurred.jpg', blurred)
-
 
 
 def test_motion(GPIO_PIN):
