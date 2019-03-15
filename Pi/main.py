@@ -107,6 +107,7 @@ def block_devices():
             print("Blocking devices")
             os.system("iptables -I INPUT -m mac --mac-source B4:9D:0B:63:79:31 -j REJECT")
             os.system("iptables -I INPUT -m mac --mac-source B4:9D:0B:63:74:39 -j REJECT")
+            os.system("conntrack --flush")
             open("./crisis", "w").close()
     else:
         if os.path.exists("./crisis"):
