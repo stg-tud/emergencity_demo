@@ -173,7 +173,9 @@ def cam_detect_crisis():
                     1,
                     image_rows / 8,
                     param1=100,
-                    param2=30)
+                    param2=30,
+                    minRadius=50,
+                    maxRadius=150)
 
                 if circles is not None:
                     if CONFIG['DEFAULT']['crisis'] == 'off':
