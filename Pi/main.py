@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+
+import hashlib
 import configparser
 import time
 import threading
@@ -124,72 +126,61 @@ def switch_leds():
     _thread.start()
 
     if CONFIG['DEFAULT']['led_state'] == 'steady':
-        if GPIO.input(LED_RING_PIN) == 0:
-            return
+        if GPIO.input(LED_RING_PIN) == 1:
+            GPIO.output(LED_RING_PIN, GPIO.input(LED_RING_PIN))
         else:
             GPIO.output(LED_RING_PIN, not GPIO.input(LED_RING_PIN))
 
     GPIO.output(LED_RING_PIN, not GPIO.input(LED_RING_PIN))
 
 
-def cam_detect_crisis():
-    CAMERA_STATE = "restart"
-
-    CAMERA_URL = urllib.request.urlopen('http://192.168.0.227/cgi-bin/mjpeg?resolution=1920x1080&quality=1&page=1551695809854&Language=9')
-
-    byte_array = b''
+def dispatch_cam():
     while True:
-        byte_array += CAMERA_URL.read(1024)
-        jpeg_sig_start = byte_array.find(b'\xff\xd8')
-        jpeg_sig_end = byte_array.find(b'\xff\xd9')
+        cam_detect_crisis()
 
-        if jpeg_sig_start != -1 and jpeg_sig_end != -1:
-            jpg = byte_array[jpeg_sig_start:jpeg_sig_end + 2]
-            byte_array = byte_array[jpeg_sig_end + 2:]
+def cam_detect_crisis():
+    with urllib.request.urlopen('http://130.83.139.80/cgi-bin/mjpeg?resolution=640x360&quality=1') as response:
+        byte_array = b''
+        while True:
+            byte_array += response.read(1024)
+            jpeg_sig_start = byte_array.find(b'\xff\xd8')
+            jpeg_sig_end = byte_array.find(b'\xff\xd9')
 
-            img = cv2.imdecode(
-                np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+            if jpeg_sig_start != -1 and jpeg_sig_end != -1:
+                jpg = byte_array[jpeg_sig_start:jpeg_sig_end + 2]
+                byte_array = byte_array[jpeg_sig_end + 2:]
 
-            img = cv2.medianBlur(img, 3)
+                img = cv2.imdecode(
+                    np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
 
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            lower_red = cv2.inRange(hsv, np.array([5, 100, 100]),
-                                    np.array([30, 255, 255]))
-            upper_red = cv2.inRange(hsv, np.array([20, 100, 100]),
-                                    np.array([60, 255, 255]))
+                img = cv2.medianBlur(img, 3)
 
-            masked = cv2.addWeighted(lower_red, 1.0, upper_red, 1.0, 0.0)
+                hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+                lower_red = cv2.inRange(hsv, np.array([15, 100, 100]),
+                                        np.array([30, 255, 255]))
+                upper_red = cv2.inRange(hsv, np.array([15, 100, 100]),
+                                        np.array([30, 255, 255]))
 
-            blurred = cv2.GaussianBlur(masked, (9, 9), 2)
+                masked = cv2.addWeighted(lower_red, 1.0, upper_red, 1.0, 0.0)
 
-            image_cols, image_rows = blurred.shape
+                blurred = cv2.GaussianBlur(masked, (9, 9), 2)
 
-            circles = cv2.HoughCircles(
-                blurred,
-                cv2.HOUGH_GRADIENT,
-                1,
-                image_rows / 8,
-                param1=100,
-                param2=30,
-                minRadius=100,
-                maxRadius=300)
+                image_cols, image_rows = blurred.shape
 
-            if circles is not None:
-                CAMERA_STATE = ("crisis" if CAMERA_STATE == "restart" else "restart")
-                print("## Detected circles. Switching to {} mode.".format(CRISIS_STATE))
-                MQTT_CLIENT.publish(CAMERA_TOPIC, CAMERA_STATE)
+                circles = cv2.HoughCircles(
+                    blurred,
+                    cv2.HOUGH_GRADIENT,
+                    1,
+                    image_rows / 8,
+                    param1=100,
+                    param2=30)
 
-            time.sleep(2)
+                if circles is not None:
+                    if CONFIG['DEFAULT']['crisis'] == 'off':
+                        print("## Detected crisis. Switching to crisis mode.")
+                        MQTT_CLIENT.publish(CAMERA_TOPIC, "crisis")
 
-            # for circle in circles[0, :]:
-            #     center = (circle[0], circle[1])
-            #     radius = circle[2]
-            #     print(radius)
-            #     cv2.circle(img, center, radius, (0, 255, 0), 5)
-
-            # cv2.imwrite('example.jpg', img)
-            cv2.imwrite('masked.jpg', masked)
-            # cv2.imwrite('blurred.jpg', blurred)
+                return
 
 
 def testmode():
@@ -232,7 +223,7 @@ if __name__ == '__main__':
     time.sleep(THREAD_MEANTIME)
     process_sensor_mqtt(sensors.lux, LIGHT_TOPIC)
     time.sleep(THREAD_MEANTIME)
-    _thread.start_new_thread(cam_detect_crisis, ())
+    _thread.start_new_thread(dispatch_cam, ())
     block_devices()
 
     update_config()
