@@ -22,4 +22,4 @@ sudo iptables -A FORWARD -i eth0 -o wlan1 -j ACCEPT
 sudo iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
 sudo iptables -A FORWARD -i wlan1 -o eth0 -j ACCEPT
 
-#docker-compose up -d
+docker-compose up -d
