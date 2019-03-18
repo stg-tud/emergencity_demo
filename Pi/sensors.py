@@ -40,8 +40,8 @@ def init_sensors(motion_function):
 
     # We need to wait until the sensor is ready.
     print("Waiting for the MOTION sensor.")
-    while GPIO.input(MOTION_SENSOR_PIN) != 0:
-        time.sleep(0.1)
+    #while GPIO.input(MOTION_SENSOR_PIN) != 0:
+    #    time.sleep(0.1)
 
     # Add a callback function to be triggered everytime the
     # sensor detects motion and falls back again
