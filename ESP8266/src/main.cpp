@@ -6,8 +6,15 @@
 #include <CmdParser.hpp>
 
 #include <WifiEspNow.h>
+#include <time.h>
 
 #include "helpers.h"
+
+char *START = "start";
+char *END = "end";
+
+time_t start = millis();
+time_t end = millis();
 
 // Helpers for parsing commands received via serial.
 CmdParser cmd_parser;
@@ -47,16 +54,45 @@ void morph_crisis() {
     delay(100);
 }
 
+// Switch to crisis mode by downclocking the ESP..
+void morph_other() {
+    // Notify about switch and wait for flush.
+    Serial.print("Received OTHER command. Morphing to crisis mode.\n");
+    Serial.flush();
+
+    // This is the actual downclocking.
+    // We have to wait 100 ms until the ESP is back functional
+    write_register(103, 4, 1, 0x88);
+    write_register(103, 4, 2, 0xf1);
+    delay(100);
+
+    // Since we downclocked everything, the baud rate also changes.
+    // The serial monitor, however, still wants 115200, so we have to
+    // speed up the ESP baud rate by 115200 / 13.5 * 32
+    // Again, wait 100 ms for the ESP to be back functional.
+    Serial.begin(144000);
+    delay(100);
+}
+
 // This prints the received data on the receiver.
 // If "crisis" is received, morph to crisis mode.
 void print_log(const uint8_t mac[6], const uint8_t *buf, size_t count, void *cbarg) {
     if (strcasecmp(CRISIS_CMD, (const char *)buf) == 0) {
         morph_crisis();
+    } else if ((strcasecmp(OTHER_CMD, (const char *)buf) == 0)) {
+        morph_other();
     } else if ((strcasecmp(RESTART_CMD, (const char *)buf) == 0)){
         ESP.restart();
-    } else {
-        Serial.printf("%s\n", (const char *)buf);
+    } else if ((strcasecmp(START, (const char *)buf) == 0)){
+        start = millis();
+        Serial.printf("Starting.\n");
+    } else if ((strcasecmp(END, (const char *)buf) == 0)){
+        end = millis();
+        Serial.printf("%u\n", end - start);
     }
+    // else {
+    //     Serial.printf("%s\n", (const char *)buf);
+    // }
 }
 
 void setup() {
@@ -108,6 +144,10 @@ void loop() {
     // If we have received the "crisis" command, switch to crisis mode.
     if (cmd_parser.equalCommand(CRISIS_CMD)) {
         morph_crisis();
+    }
+
+    if (cmd_parser.equalCommand(OTHER_CMD)) {
+        morph_other();
     }
 
     if (cmd_parser.equalCommand(RESTART_CMD)) {

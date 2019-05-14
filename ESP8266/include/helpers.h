@@ -2,6 +2,7 @@
 #define HELPERS_H
 
 #define CRISIS_CMD "CRISIS"
+#define OTHER_CMD "OTHER"
 #define RESTART_CMD "RESTART"
 
 // This is the function for writing register. See "write_registers.S" for info.
