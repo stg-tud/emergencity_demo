@@ -6,7 +6,7 @@
   "dependencies": {
     "cn-dashboard-nodes": "0.0.2",
     "node-red-contrib-ui_list": "~0.1.3",
-    "node-red-dashboard": "~2.17.1",
+    "node-red-dashboard": ">=2.26.2",
     "node-red-node-serialport": "~0.7.0"
   }
 }
